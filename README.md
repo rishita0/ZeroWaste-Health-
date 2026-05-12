@@ -71,6 +71,7 @@ ZeroWaste-Health is built around five major business questions:
 ---
 ## 🏗️ Architecture
 
+```text
 Manufacturer Sales + Inventory Data
 Hospital / Pharmacy / Clinic Supply Data
 Recipient Signup + NGO Demand Data
