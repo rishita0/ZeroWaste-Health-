@@ -363,17 +363,19 @@ ZeroWaste-Health/
 - **Waste Reduction KPIs** — units saved, projected waste avoided, communities served, and delivery SLA.
 
 ---
+## 🌱 Expected Business Impact / Success Metrics
 
-## 🌱 Business Impact
+Because this project uses synthetic data, the impact metrics below represent simulated targets and success criteria the platform is designed to measure.
 
-| Metric | Target |
+| Metric | Target / Simulated Goal |
 |---|---|
-| Projected surplus identified | 10,000+ units/month simulated |
-| Waste-risk inventory flagged | 80%+ of near-expiry eligible inventory |
-| Verified recipient groups served | Students, school children, low-income families, clinics, NGOs |
-| Redistribution recommendation SLA | < 1 hour after ingestion |
-| Data quality pass rate | > 95% |
-| Delivery planning coverage | Zip-code level routing and demand mapping |
+| Projected surplus identified | 10,000+ units/month in simulated inventory data |
+| Waste-risk inventory flagged | 80%+ of near-expiry eligible inventory identified before expiration |
+| Verified recipient groups served | Students, Vulnerable population, low-income families, clinics, and NGO partners |
+| Redistribution recommendation SLA | Recommendations generated within < 1 hour after ingestion |
+| Data quality pass rate | > 95% validation success across required pipeline checks |
+| Delivery planning coverage | Zip-code level routing, supply-demand matching, and demand-zone mapping |
+| Subsidy planning support | Eligibility-based assistance logic available for free or reduced-cost distribution decisions |
 
 ---
 
