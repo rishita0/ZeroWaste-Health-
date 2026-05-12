@@ -69,90 +69,96 @@ ZeroWaste-Health is built around five major business questions:
    - Exclude due to expiry, compliance, or quality risk.
 
 ---
-
 ## 🏗️ Architecture
 
-```text
-Manufacturer Sales & Inventory Data
-Hospital / Pharmacy / Clinic Inventory
-Recipient Signup & Eligibility Data
-NGO / Community Partner Requests
-Geographic & Demographic Data
+Manufacturer Sales + Inventory Data
+Hospital / Pharmacy / Clinic Supply Data
+Recipient Signup + NGO Demand Data
+Geographic + Demographic Data
         │
         ▼
 ┌──────────────────────────────┐
-│        Ingestion Layer        │  ← Python + PySpark
-│  manufacturer_ingestion       │
-│  provider_inventory_ingestion │
-│  recipient_signup_ingestion   │
-│  ngo_partner_ingestion        │
-│  geospatial_ingestion         │
+│      Ingestion Layer         │  ← Python + PySpark
+│  - Manufacturer sales data   │
+│  - Provider inventory data   │
+│  - Recipient signup data     │
+│  - NGO partner demand data   │
+│  - Geographic/demographic    │
 └──────────────┬───────────────┘
                │
                ▼
 ┌──────────────────────────────┐
-│      Forecasting Layer        │  ← PySpark + ML Models
-│  manufacturer_sales_forecast  │
-│  unused_inventory_prediction  │
-│  surplus_quantity_forecast    │
-│  expiry_risk_prediction       │
+│   Data Lake Storage Layer    │  ← Local folders / Amazon S3
+│  - raw/                      │
+│  - processed/                │
+│  - curated/                  │
+│  - audit/                    │
 └──────────────┬───────────────┘
                │
                ▼
 ┌──────────────────────────────┐
-│      Eligibility Layer        │  ← Python + SQL Rules
-│  student_verification         │
-│  vulnerable_eligibility       │
-│  income_based_eligibility     │
-│  ngo_access_approval          │
-│  privacy_masking              │
+│      Transform Layer         │  ← PySpark + DuckDB
+│  - Sales forecasting         │
+│  - Surplus prediction        │
+│  - Expiry risk scoring       │
+│  - Eligibility classification│
+│  - Subsidy planning logic    │
+│  - Demand matching           │
+│  - Geographic matching       │
 └──────────────┬───────────────┘
                │
                ▼
 ┌──────────────────────────────┐
-│      Matching & Routing       │  ← PySpark + DuckDB
-│  expiry_scoring               │
-│  demand_matching              │
-│  geo_distance_scoring         │
-│  redistribution_router        │
+│    Data Quality Layer        │  ← pytest + custom checks
+│  - Null checks               │
+│  - Schema validation         │
+│  - Duplicate detection       │
+│  - Source-target recon       │
+│  - Freshness checks          │
+│  - Business rule validation  │
 └──────────────┬───────────────┘
                │
                ▼
 ┌──────────────────────────────┐
-│       Data Quality Layer      │  ← pytest + custom checks
-│  schema_validation            │
-│  null_checks                  │
-│  duplicate_detection          │
-│  eligibility_validation       │
-│  reconciliation               │
-│  freshness_checks             │
+│   Curated Analytics Layer    │  ← DuckDB / Athena
+│  - Surplus predictions       │
+│  - Waste-risk inventory      │
+│  - Verified recipient demand │
+│  - Subsidy recommendations   │
+│  - Redistribution queue      │
+│  - Delivery planning outputs │
 └──────────────┬───────────────┘
                │
                ▼
 ┌──────────────────────────────┐
-│        Curated Layer          │  ← DuckDB local / Snowflake cloud
-│  surplus_forecasts            │
-│  verified_recipients          │
-│  ngo_partner_access           │
-│  demand_zones                 │
-│  redistribution_recommendations│
+│ AWS Metadata & Query Layer   │  ← Glue + Athena
+│  - Glue Data Catalog         │
+│  - External tables           │
+│  - Athena SQL queries        │
+│  - Dashboard-ready datasets  │
 └──────────────┬───────────────┘
                │
                ▼
 ┌──────────────────────────────┐
-│        Orchestration          │  ← Apache Airflow
-│  zerowaste_forecast_dag       │
-│  zerowaste_matching_dag       │
-│  zerowaste_quality_dag        │
+│      Orchestration Layer     │  ← Airflow + Docker
+│  - Ingestion DAG             │
+│  - Transformation DAG        │
+│  - Data quality DAG          │
+│  - AWS S3 sync DAG           │
+│  - Glue/Athena DAG           │
 └──────────────┬───────────────┘
                │
                ▼
 ┌──────────────────────────────┐
-│          Platform UI          │  ← Streamlit
-│  Recipient signup             │
-│  NGO partner portal           │
-│  Inventory risk dashboard     │
-│  Delivery planning dashboard  │
+│   Streamlit Platform Layer   │
+│  - Surplus forecast view     │
+│  - Provider risk dashboard   │
+│  - Recipient signup portal   │
+│  - Eligibility review queue  │
+│  - Subsidy planning view     │
+│  - Geographic demand map     │
+│  - Redistribution queue      │
+│  - Waste reduction KPIs      │
 └──────────────────────────────┘
 ```
 
@@ -174,80 +180,132 @@ Geographic & Demographic Data
 | Version Control | GitHub |
 
 ---
-
 ## 📁 Project Structure
 
-```text
 ZeroWaste-Health/
 │
-├── synthetic_data/
-│   ├── generate_manufacturer_sales.py
-│   ├── generate_provider_inventory.py
-│   ├── generate_recipient_signups.py
-│   ├── generate_ngo_partners.py
-│   └── generate_geographic_data.py
+├── synthetic_data/                         # Synthetic data generation
+│   ├── generate_manufacturer_sales.py      # Manufacturer sales, unsold quantity, and waste-risk data
+│   ├── generate_provider_inventory.py      # Hospital, pharmacy, and clinic inventory data
+│   ├── generate_recipient_demand.py        # Student, family, clinic, NGO, and community demand data
+│   └── generate_geographic_data.py         # Zip-code, distance, and demand-zone data
 │
-├── ingestion/
-│   ├── manufacturer_ingestion.py
-│   ├── provider_inventory_ingestion.py
-│   ├── recipient_signup_ingestion.py
-│   ├── ngo_partner_ingestion.py
-│   └── geospatial_ingestion.py
+├── ingestion/                              # Raw data ingestion pipelines
+│   ├── manufacturer_ingestion.py           # Ingest manufacturer sales and inventory forecast data
+│   ├── provider_inventory_ingestion.py     # Ingest hospital, pharmacy, and clinic inventory data
+│   ├── recipient_signup_ingestion.py       # Ingest recipient eligibility and demand signup data
+│   ├── ngo_partner_ingestion.py            # Ingest NGO/community partner access requests
+│   └── geographic_ingestion.py             # Ingest zip-code, demographic, and delivery-zone data
 │
-├── transform/
-│   ├── sales_forecasting.py
-│   ├── surplus_quantity_prediction.py
-│   ├── expiry_scoring.py
-│   ├── eligibility_scoring.py
-│   ├── demand_matching.py
-│   └── redistribution_router.py
+├── transform/                              # Business transformation logic
+│   ├── surplus_forecasting.py              # Forecast future surplus and expected waste quantity
+│   ├── expiry_risk_scoring.py              # Score inventory by expiry window and waste risk
+│   ├── eligibility_classification.py       # Classify recipient eligibility and access category
+│   ├── subsidy_planning.py                 # Plan financial assistance and subsidy access logic
+│   ├── demand_matching.py                  # Match available supply to verified demand
+│   ├── geographic_matching.py              # Match supply and demand using zip-code/distance logic
+│   └── redistribution_router.py            # Generate dispatch, hold, NGO route, or alert decisions
 │
-├── quality/
-│   ├── null_checks.py
-│   ├── schema_validation.py
-│   ├── duplicate_detection.py
-│   ├── eligibility_validation.py
-│   ├── reconciliation.py
-│   └── freshness_checks.py
+├── aws/                                    # AWS cloud integration scripts
+│   ├── s3_upload.py                        # Upload raw, processed, and curated datasets to Amazon S3
+│   ├── glue_crawler_setup.py               # Create or trigger AWS Glue Crawlers
+│   ├── athena_table_ddl.sql                # Athena external table definitions
+│   ├── athena_queries.sql                  # Analytical SQL queries for curated datasets
+│   ├── lambda_trigger.py                   # Optional Lambda trigger for event-based processing
+│   └── cloudwatch_logging.py               # CloudWatch logging and pipeline monitoring helpers
 │
-├── models/
-│   ├── manufacturer_sales_forecast_model.py
-│   ├── expiry_risk_model.py
-│   └── demand_forecast_model.py
+├── data_lake/                              # Local data lake zones; mirrors AWS S3 layout
+│   ├── raw/                                # Raw ingested data
+│   │   ├── manufacturers/
+│   │   ├── providers/
+│   │   ├── recipients/
+│   │   ├── ngos/
+│   │   └── geography/
+│   │
+│   ├── processed/                          # Cleaned and standardized datasets
+│   │   ├── manufacturer_forecasts/
+│   │   ├── provider_inventory/
+│   │   ├── recipient_profiles/
+│   │   ├── eligibility_results/
+│   │   └── geographic_zones/
+│   │
+│   └── curated/                            # Final trusted analytics-ready datasets
+│       ├── surplus_predictions/
+│       ├── waste_risk_inventory/
+│       ├── verified_recipient_demand/
+│       ├── subsidy_recommendations/
+│       ├── redistribution_recommendations/
+│       └── delivery_planning/
 │
-├── orchestration/
-│   ├── zerowaste_forecast_dag.py
-│   ├── zerowaste_matching_dag.py
-│   └── zerowaste_quality_dag.py
+├── quality/                                # Data quality and validation checks
+│   ├── null_checks.py                      # Missing values in inventory, expiry, income, and eligibility fields
+│   ├── schema_validation.py                # Schema drift checks across pipeline runs
+│   ├── duplicate_checks.py                 # Duplicate inventory, recipient, and request detection
+│   ├── reconciliation.py                   # Source-to-target row count and quantity validation
+│   ├── freshness_checks.py                 # SLA checks for updated inventory and demand data
+│   └── business_rule_checks.py             # Eligibility, subsidy, expiry, and quantity rule validation
 │
-├── dashboard/
-│   ├── app.py
-│   ├── recipient_portal.py
-│   ├── ngo_partner_portal.py
-│   └── utils.py
+├── models/                                 # Forecasting and AI/ML models
+│   ├── sales_forecast_model.py             # Forecast product sales and expected unsold quantity
+│   ├── surplus_prediction_model.py         # Predict available surplus from manufacturers/providers
+│   ├── demand_forecast_model.py            # Forecast demand by category and geography
+│   └── assistance_priority_model.py        # Rank eligible recipients by need and access priority
 │
-├── data/
-│   ├── raw/
-│   ├── processed/
-│   └── curated/
+├── orchestration/                          # Workflow orchestration
+│   ├── zerowaste_dag.py                    # Main Airflow DAG
+│   ├── aws_s3_sync_dag.py                  # Optional DAG to sync local data lake to S3
+│   ├── glue_athena_dag.py                  # Optional DAG to trigger Glue Crawlers and Athena queries
+│   └── data_quality_dag.py                 # Dedicated data quality validation workflow
 │
-├── tests/
+├── dashboard/                              # Streamlit dashboard and platform interface
+│   ├── app.py                              # Main dashboard app
+│   ├── surplus_forecast_view.py            # Manufacturer/provider surplus forecast dashboard
+│   ├── inventory_risk_view.py              # Provider inventory expiry-risk dashboard
+│   ├── recipient_signup_view.py            # Recipient signup and demand capture interface
+│   ├── eligibility_review_view.py          # Eligibility review and verification queue
+│   ├── subsidy_planning_view.py            # Financial assistance and subsidy planning dashboard
+│   ├── geographic_map_view.py              # Supply-demand map and delivery planning view
+│   └── redistribution_queue_view.py        # Ranked redistribution recommendation queue
+│
+├── sql/                                    # SQL models and analytical queries
+│   ├── duckdb_tables.sql                   # Local DuckDB table creation scripts
+│   ├── athena_external_tables.sql          # AWS Athena external table DDL
+│   ├── surplus_analysis.sql                # Surplus and waste-risk analysis queries
+│   ├── eligibility_analysis.sql            # Recipient eligibility and access analysis
+│   └── redistribution_kpis.sql             # KPI queries for dashboard metrics
+│
+├── tests/                                  # Automated tests
 │   ├── unit/
+│   │   ├── test_surplus_forecasting.py
+│   │   ├── test_expiry_risk_scoring.py
+│   │   ├── test_eligibility_rules.py
+│   │   └── test_subsidy_planning.py
+│   │
 │   └── integration/
+│       ├── test_ingestion_to_processed.py
+│       ├── test_processed_to_curated.py
+│       ├── test_recommendation_pipeline.py
+│       └── test_aws_s3_athena_flow.py
 │
-├── docs/
-│   ├── architecture.md
-│   ├── data_dictionary.md
-│   └── privacy_and_compliance_notes.md
+├── config/                                 # Configuration files
+│   ├── config.yaml                         # Pipeline configuration
+│   ├── aws_config.yaml                     # S3 bucket, Glue database, Athena workgroup settings
+│   ├── eligibility_rules.yaml              # Recipient category and verification rules
+│   ├── subsidy_rules.yaml                  # Financial assistance and subsidy rules
+│   └── logging.yaml                        # Logging configuration
 │
-├── config/
-│   ├── config.yaml
-│   └── logging.yaml
+├── docs/                                   # Documentation
+│   ├── architecture.md                     # Architecture explanation
+│   ├── data_dictionary.md                  # Field definitions
+│   ├── aws_setup.md                        # AWS S3, Glue, Athena setup guide
+│   ├── eligibility_framework.md            # Recipient verification and access rules
+│   └── business_rules.md                   # Forecasting, routing, and subsidy logic
 │
-├── logs/
-├── docker-compose.yml
-├── requirements.txt
-└── README.md
+├── logs/                                   # Local pipeline logs
+├── docker-compose.yml                      # Docker setup for Airflow and local services
+├── requirements.txt                        # Python dependencies
+├── README.md                               # Project documentation
+└── .gitignore                              # Files/folders excluded from Git
 ```
 
 ---
