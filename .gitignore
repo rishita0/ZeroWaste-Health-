@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+venv/
+.env
+
+# Data files
+data/raw/*
+data/processed/*
+data/curated/*
+*.csv
+*.parquet
+*.json
+!synthetic_data/*.py
+
+# Logs
+logs/
+*.log
+
+# DuckDB
+*.duckdb
+*.db
+
+# Docker
+.docker/
+
+# IDE
+.vscode/
+.idea/
+*.DS_Store
+
+# Airflow
+airflow.cfg
+airflow.db
