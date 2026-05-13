@@ -182,7 +182,7 @@ Geographic + Demographic Data
 
 ---
 ## 📁 Project Structure
-
+```text
 ZeroWaste-Health/
 │
 ├── synthetic_data/                         # Synthetic data generation
